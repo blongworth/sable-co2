@@ -1,0 +1,23 @@
+---
+title: "Parse sable"
+format: html
+editor: visual
+---
+
+## Read Data
+
+```{r}
+library(tidyverse)
+
+df <- read.csv("test_data.csv",
+               header = FALSE,
+               col.names = c("ts", "cycle", "temp", "press", "co2")) |> 
+  mutate(ts_pt = as.POSIXct(ts, origin = "1970-01-01"))
+
+
+```
+
+```{r}
+ggplot(df, aes(ts_pt, co2)) +
+  geom_line()
+```
