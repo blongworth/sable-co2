@@ -2,12 +2,9 @@ import asyncio
 import serial_asyncio
 import queue
 import datetime
-#import re
-#import matplotlib.pyplot as plt
-#import matplotlib.animation as animation
 
-port = 'COM10'
-filename = '2023-03-02_co2_test.csv'
+port = 'COM11'
+filename = '2023-03-08_co2_test.csv'
 
 incoming_serial_queue = queue.Queue()
 
@@ -19,19 +16,19 @@ def parse_sable(b):
     dat = [float(str) for str in str_d]
     return dat
 
-async def read_serial(port):
+async def read_serial(port, queue):
     print("do serial")
     reader, writer = await serial_asyncio.open_serial_connection(url = port, baudrate = 9600)
     while True:
         raw = await reader.readline()
         data = parse_sable(raw)
         ts = datetime.datetime.now()
-        #print("put: " + ts + " " + data)
-        incoming_serial_queue.put((ts, data))
+        queue.put((ts, data))
 
 async def main():
     print("main")
     with open(filename, 'a', buffering = 1) as the_file:
+        the_file.write("timestamp,power,temp,pressure,co2\n")
         while True:
             if not incoming_serial_queue.empty():
                 data = incoming_serial_queue.get()
@@ -43,8 +40,11 @@ async def main():
 async def start():
     print("start")
     await asyncio.gather(
-        read_serial(port),
+        read_serial(port, incoming_serial_queue),
         main(),
     )
 
-asyncio.run(start())
+if __name__ == '__main__':
+    asyncio.run(start())
+
+
